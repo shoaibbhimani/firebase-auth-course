@@ -15,18 +15,18 @@ import { Link as ReactRouterLink } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useHistory } from "react-router-dom";
 
-import { signupResolver } from "../../utils/validator/signupResolver";
+import { loginResolver } from "../../utils/validator/loginResolver";
 import { auth } from "../../utils/firebase";
 import { AuthContext } from "../../components/Authentication/AuthProvider";
 
-const Signup = () => {
+const Login = () => {
   const {
     handleSubmit,
     register,
     formState: { errors, isSubmitting },
     setError,
     clearErrors,
-  } = useForm({ resolver: signupResolver });
+  } = useForm({ resolver: loginResolver });
 
   const history = useHistory();
 
@@ -35,13 +35,13 @@ const Signup = () => {
   const onSubmit = ({ email, password }) => {
     clearErrors("API_ERROR");
     auth
-      .createUserWithEmailAndPassword(email, password)
+        .signInWithEmailAndPassword(email, password)
       .then(() => {
         history.push("/");
       })
       .catch((err) => {
         setError("API_ERROR", {
-          message: err.message,
+          message: "Email or Password would be Invalid",
         });
       });
   };
@@ -89,18 +89,7 @@ const Signup = () => {
             </FormErrorMessage>
           </FormControl>
 
-          <FormControl mt="2" isInvalid={errors.repeat_password}>
-            <FormLabel htmlFor="repeat_password">Repeat Password</FormLabel>
-            <Input
-              type="password"
-              name="repeat_password"
-              placeholder="Enter your password"
-              {...register("repeat_password")}
-            />
-            <FormErrorMessage>
-              {errors.repeat_password && errors.repeat_password.message}
-            </FormErrorMessage>
-          </FormControl>
+         
 
           <Box mt="5" color="red.500">
             {errors.API_ERROR && errors.API_ERROR.message}
@@ -113,12 +102,12 @@ const Signup = () => {
             type="submit"
             w="100%"
           >
-            Sign up
+            Login
           </Button>
 
           <Text textAlign="center" p="2" size="xs">
-            <Link as={ReactRouterLink} color="gray.500" to="/login">
-              Already registered?
+            <Link as={ReactRouterLink} color="gray.500" to="/signup">
+              Create account?
             </Link>
           </Text>
         </form>
@@ -127,4 +116,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default Login;
