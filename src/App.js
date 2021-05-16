@@ -1,11 +1,9 @@
 import { Switch, Route } from "react-router-dom";
 
 import Signup from "./pages/Signup"
+import Dashboard from "./pages/Dashboard"
 
-const Dashboard = () => <div>Dashboard</div>;
 const Login = () => <div>Login</div>;
-
-
 
 function App() {
   return (

@@ -1,3 +1,4 @@
+import { useContext, useEffect } from "react";
 import { Box } from "@chakra-ui/layout";
 
 import {
@@ -12,20 +13,44 @@ import {
 
 import { Link as ReactRouterLink } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { useHistory } from "react-router-dom";
 
-import { signupResolver } from "../../utils/validator/signupResolver"
+import { signupResolver } from "../../utils/validator/signupResolver";
+import { auth } from "../../utils/firebase";
+import { AuthContext } from "../../components/Authentication/AuthProvider";
 
 const Signup = () => {
   const {
     handleSubmit,
     register,
     formState: { errors, isSubmitting },
+    setError,
+    clearErrors,
   } = useForm({ resolver: signupResolver });
 
+  const history = useHistory();
+
+  const { user } = useContext(AuthContext);
+
   const onSubmit = ({ email, password }) => {
-      console.log(email, password)
-      // firebase 
+    clearErrors("API_ERROR");
+    auth
+      .createUserWithEmailAndPassword(email, password)
+      .then(() => {
+        history.push("/");
+      })
+      .catch((err) => {
+        setError("API_ERROR", {
+          message: err.message,
+        });
+      });
   };
+
+  useEffect(() => {
+    if (user) {
+      history.push("/");
+    }
+  }, [user, history]);
 
   return (
     <Box
@@ -60,7 +85,7 @@ const Signup = () => {
               {...register("password")}
             />
             <FormErrorMessage>
-            {errors.password && errors.password.message}
+              {errors.password && errors.password.message}
             </FormErrorMessage>
           </FormControl>
 
@@ -73,11 +98,21 @@ const Signup = () => {
               {...register("repeat_password")}
             />
             <FormErrorMessage>
-            {errors.repeat_password && errors.repeat_password.message}
+              {errors.repeat_password && errors.repeat_password.message}
             </FormErrorMessage>
           </FormControl>
 
-          <Button isLoading={isSubmitting} mt={4} colorScheme="messenger" type="submit" w="100%">
+          <Box mt="5" color="red.500">
+            {errors.API_ERROR && errors.API_ERROR.message}
+          </Box>
+
+          <Button
+            isLoading={isSubmitting}
+            mt={4}
+            colorScheme="messenger"
+            type="submit"
+            w="100%"
+          >
             Sign up
           </Button>
 
