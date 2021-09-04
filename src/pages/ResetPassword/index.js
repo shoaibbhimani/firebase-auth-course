@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { Box } from "@chakra-ui/layout";
 
 import {
@@ -13,35 +13,47 @@ import {
 
 import { Link as ReactRouterLink } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 
-import { loginResolver } from "../../utils/validator/loginResolver";
+import { resetPasswordResolver } from "../../utils/validator/resetResolver";
 import { auth } from "../../utils/firebase";
 import { AuthContext } from "../../components/Authentication/AuthProvider";
 
-const Login = () => {
+const ResetPassword = ({ location }) => {
   const {
     handleSubmit,
     register,
     formState: { errors, isSubmitting },
     setError,
     clearErrors,
-  } = useForm({ resolver: loginResolver });
+  } = useForm({ resolver: resetPasswordResolver });
 
   const history = useHistory();
 
+  const oobCode = useRef(null);
+
   const { user } = useContext(AuthContext);
 
-  const onSubmit = ({ email, password }) => {
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+
+    oobCode.current = queryParams.get("oobCode");
+
+    if (!oobCode.current) {
+      history.push("/login");
+    }
+  }, []);
+
+  const onSubmit = ({ password }) => {
     clearErrors("API_ERROR");
     auth
-        .signInWithEmailAndPassword(email, password)
+      .confirmPasswordReset(oobCode.current, password)
       .then(() => {
         history.push("/");
       })
       .catch((err) => {
         setError("API_ERROR", {
-          message: "Email or Password would be Invalid",
+          message: err.message,
         });
       });
   };
@@ -61,21 +73,14 @@ const Login = () => {
       alignItems="center"
       justifyContent="center"
     >
-      <Box width={{ base: "90%", md: "40%", lg: "30%" }} shadow="lg" background="white" p={12} rounded={6}>
+      <Box
+        width={{ base: "90%", md: "40%", lg: "30%" }}
+        shadow="lg"
+        background="white"
+        p={12}
+        rounded={6}
+      >
         <form onSubmit={handleSubmit(onSubmit)}>
-          <FormControl isInvalid={errors.email}>
-            <FormLabel htmlFor="email">Email</FormLabel>
-            <Input
-              type="email"
-              name="email"
-              placeholder="Enter your email"
-              {...register("email")}
-            />
-            <FormErrorMessage>
-              {errors.email && errors.email.message}
-            </FormErrorMessage>
-          </FormControl>
-
           <FormControl marginTop="2" isInvalid={errors.password}>
             <FormLabel htmlFor="password">Password</FormLabel>
             <Input
@@ -89,8 +94,6 @@ const Login = () => {
             </FormErrorMessage>
           </FormControl>
 
-         
-
           <Box mt="5" color="red.500">
             {errors.API_ERROR && errors.API_ERROR.message}
           </Box>
@@ -102,18 +105,12 @@ const Login = () => {
             type="submit"
             w="100%"
           >
-            Login
+            Reset Password
           </Button>
 
           <Text textAlign="center" p="2" size="xs">
-            <Link as={ReactRouterLink} color="gray.500" to="/signup">
-              Create account?
-            </Link>
-          </Text>
-
-          <Text textAlign="center" p="2" size="xs">
-            <Link as={ReactRouterLink} color="gray.500" to="/forgot-password">
-              forgot password?
+            <Link as={ReactRouterLink} color="gray.500" to="/login">
+              login?
             </Link>
           </Text>
         </form>
@@ -122,4 +119,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default ResetPassword;
